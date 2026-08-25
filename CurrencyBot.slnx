@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CurrencyBot.Tests/CurrencyBot.Tests.csproj" />
+  <Project Path="CurrencyBot/CurrencyBot.csproj" />
+</Solution>
