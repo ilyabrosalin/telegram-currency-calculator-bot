@@ -2,9 +2,9 @@
 
 public class Parser
 {
-    public static List<Token> ToRpn(List<Token> tokens)
+    public static bool TryParseToRpn(List<Token> tokens, out List<Token> result, out string? error)
     {
-        var result = new List<Token>();
+        var tokenList = new List<Token>();
         var stack = new Stack<Token>();
 
         foreach (var token in tokens)
@@ -12,7 +12,7 @@ public class Parser
             switch (token.Type)
             {
                 case TokenType.Number:
-                    result.Add(token);
+                    tokenList.Add(token);
                     break;
                 case TokenType.Plus:
                 case TokenType.Minus:
@@ -24,7 +24,7 @@ public class Parser
                     }
                     else if (GetPriority(stack.Peek().Type) >= GetPriority(token.Type))
                     {
-                        result.Add(stack.Pop());
+                        tokenList.Add(stack.Pop());
                         stack.Push(token);
                     }
                     else if (GetPriority(stack.Peek().Type) <= GetPriority(token.Type))
@@ -44,7 +44,7 @@ public class Parser
                         }
                         else
                         {
-                            result.Add(stack.Pop());
+                            tokenList.Add(stack.Pop());
                         }
                     }
 
@@ -54,10 +54,12 @@ public class Parser
 
         foreach (var token in stack)
         {
-            result.Add(token);
+            tokenList.Add(token);
         }
 
-        return result;
+        result = tokenList;
+        error = null;
+        return true;
     }
 
     private static int GetPriority(TokenType type)

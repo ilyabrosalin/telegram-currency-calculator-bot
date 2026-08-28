@@ -18,9 +18,10 @@ public class ParserTests
         // "5" -> "5"
         var tokens = new List<Token> { Num("5") };
 
-        var rpn = Parser.ToRpn(tokens);
+        var success = Parser.TryParseToRpn(tokens, out var result, out var error);
 
-        Assert.Equal(new List<string> { "5" }, Values(rpn));
+        Assert.True(success);
+        Assert.Equal(["5"], Values(result));
     }
 
     [Fact]
@@ -32,9 +33,10 @@ public class ParserTests
             Num("5"), Op(TokenType.Plus, "+"), Num("3")
         };
 
-        var rpn = Parser.ToRpn(tokens);
+        var success = Parser.TryParseToRpn(tokens, out var result, out var error);
 
-        Assert.Equal(new List<string> { "5", "3", "+" }, Values(rpn));
+        Assert.True(success);
+        Assert.Equal(["5", "3", "+"], Values(result));
     }
 
     [Fact]
@@ -46,9 +48,10 @@ public class ParserTests
             Num("5"), Op(TokenType.Plus, "+"), Num("3"), Op(TokenType.Multiply, "*"), Num("2")
         };
 
-        var rpn = Parser.ToRpn(tokens);
+        var success = Parser.TryParseToRpn(tokens, out var result, out var error);
 
-        Assert.Equal(new List<string> { "5", "3", "2", "*", "+" }, Values(rpn));
+        Assert.True(success);
+        Assert.Equal(["5", "3", "2", "*", "+"], Values(result));
     }
 
     [Fact]
@@ -61,9 +64,10 @@ public class ParserTests
             Op(TokenType.Multiply, "*"), Num("2")
         };
 
-        var rpn = Parser.ToRpn(tokens);
+        var success = Parser.TryParseToRpn(tokens, out var result, out var error);
 
-        Assert.Equal(new List<string> { "5", "3", "+", "2", "*" }, Values(rpn));
+        Assert.True(success);
+        Assert.Equal(["5", "3", "+", "2", "*"], Values(result));
     }
 
     [Fact]
@@ -75,8 +79,9 @@ public class ParserTests
             Num("10"), Op(TokenType.Minus, "-"), Num("5"), Op(TokenType.Minus, "-"), Num("2")
         };
 
-        var rpn = Parser.ToRpn(tokens);
+        var success = Parser.TryParseToRpn(tokens, out var result, out var error);
 
-        Assert.Equal(new List<string> { "10", "5", "-", "2", "-" }, Values(rpn));
+        Assert.True(success);
+        Assert.Equal(["10", "5", "-", "2", "-"], Values(result));
     }
 }

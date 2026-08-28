@@ -2,7 +2,7 @@
 
 public class Tokenizer
 {
-    public static List<Token> Tokenize(string text)
+    public static bool TryTokenize(string text, out List<Token> result, out string? error)
     {
         var tokens = new List<Token>();
 
@@ -62,13 +62,17 @@ public class Tokenizer
                 case ' ':
                     break;
                 default:
-                    throw new FormatException();
+                    result = default;
+                    error = $"Недопустимый символ {text[index]}";
+                    return false;
             }
 
             index++;
         }
 
-        return tokens;
+        result = tokens;
+        error = null;
+        return true;
     }
 }
 
