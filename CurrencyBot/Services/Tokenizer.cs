@@ -33,6 +33,13 @@ public class Tokenizer
                     }
                 }
 
+                if (index < text.Length && (text[index] == '.' || text[index] == ','))
+                {
+                    result = default;
+                    error = "Некорректный формат числа";
+                    return false;
+                }
+
                 var number = text.Substring(start, index - start).Replace(',', '.');
 
                 tokens.Add(new Token { Type = TokenType.Number, Value = number });
@@ -61,13 +68,24 @@ public class Tokenizer
                     break;
                 case ' ':
                     break;
+                case '^':
+                    result = default;
+                    error = "Оператор '^' не поддерживается";
+                    return false;
                 default:
                     result = default;
-                    error = $"Недопустимый символ {text[index]}";
+                    error = $"Недопустимый символ '{text[index]}'";
                     return false;
             }
 
             index++;
+        }
+
+        if (tokens.Count == 0)
+        {
+            result = default;
+            error = "Пустой ввод";
+            return false;
         }
 
         result = tokens;
