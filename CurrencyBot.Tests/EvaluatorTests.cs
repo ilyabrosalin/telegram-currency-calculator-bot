@@ -2,8 +2,8 @@
 
 public class EvaluatorTests
 {
-    private static Token Num(string v) => new Token { Type = TokenType.Number, Value = v };
-    private static Token Op(TokenType t, string v) => new Token { Type = t, Value = v };
+    private static Token Num(string v) => new Token(TokenType.Number, v);
+    private static Token Op(TokenType t, string v) => new Token(t, v);
 
     [Fact]
     public void SingleNumber_ReturnsItsValue()

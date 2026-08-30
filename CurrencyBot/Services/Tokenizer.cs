@@ -1,8 +1,18 @@
 ﻿namespace CurrencyBot.Services;
 
-public class Tokenizer
+public static class Tokenizer
 {
-    public static bool TryTokenize(string text, out List<Token> result, out string? error)
+    private static readonly Dictionary<char, TokenType> TokenTypeMappings = new()
+    {
+        { '+', TokenType.Plus },
+        { '-', TokenType.Minus },
+        { '*', TokenType.Multiply },
+        { '/', TokenType.Divide },
+        { '(', TokenType.LeftParen },
+        { ')', TokenType.RightParen },
+    };
+
+    public static List<Token> Tokenize(string text)
     {
         var tokens = new List<Token>();
 
@@ -12,70 +22,26 @@ public class Tokenizer
         {
             if (char.IsDigit(text[index]))
             {
-                var start = index;
-                var hasSeparator = false;
-
-                while (index < text.Length)
-                {
-                    if (char.IsDigit(text[index]))
-                    {
-                        index++;
-                    }
-                    else if ((text[index] == '.' || text[index] == ',') && !hasSeparator &&
-                             (index + 1 < text.Length && char.IsDigit(text[index + 1])))
-                    {
-                        hasSeparator = true;
-                        index++;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                if (index < text.Length && (text[index] == '.' || text[index] == ','))
-                {
-                    result = default;
-                    error = "Некорректный формат числа";
-                    return false;
-                }
-
-                var number = text.Substring(start, index - start).Replace(',', '.');
-
-                tokens.Add(new Token { Type = TokenType.Number, Value = number });
+                var number = ReadNumber(text, ref index);
+                tokens.Add(new Token(TokenType.Number, number));
                 continue;
             }
 
-            switch (text[index])
+            if (TokenTypeMappings.TryGetValue(text[index], out var tokenType))
             {
-                case '+':
-                    tokens.Add(new Token { Type = TokenType.Plus, Value = text[index].ToString() });
-                    break;
-                case '-':
-                    tokens.Add(new Token { Type = TokenType.Minus, Value = text[index].ToString() });
-                    break;
-                case '*':
-                    tokens.Add(new Token { Type = TokenType.Multiply, Value = text[index].ToString() });
-                    break;
-                case '/':
-                    tokens.Add(new Token { Type = TokenType.Divide, Value = text[index].ToString() });
-                    break;
-                case '(':
-                    tokens.Add(new Token { Type = TokenType.LeftParen, Value = text[index].ToString() });
-                    break;
-                case ')':
-                    tokens.Add(new Token { Type = TokenType.RightParen, Value = text[index].ToString() });
-                    break;
-                case ' ':
-                    break;
-                case '^':
-                    result = default;
-                    error = "Оператор '^' не поддерживается";
-                    return false;
-                default:
-                    result = default;
-                    error = $"Недопустимый символ '{text[index]}'";
-                    return false;
+                tokens.Add(new Token(tokenType, text[index].ToString()));
+            }
+            else
+            {
+                switch (text[index])
+                {
+                    case ' ':
+                        break;
+                    case '^':
+                        throw new Exception(TokenizerErrors.UnsupportedPowerOperator);
+                    default:
+                        throw new Exception(TokenizerErrors.InvalidCharacter(text[index]));
+                }
             }
 
             index++;
@@ -83,30 +49,46 @@ public class Tokenizer
 
         if (tokens.Count == 0)
         {
-            result = default;
-            error = "Пустой ввод";
-            return false;
+            throw new Exception(TokenizerErrors.EmptyInput);
         }
 
-        result = tokens;
-        error = null;
-        return true;
+        return tokens;
     }
-}
 
-public enum TokenType
-{
-    Number,
-    Plus,
-    Minus,
-    Multiply,
-    Divide,
-    LeftParen,
-    RightParen
-}
+    private static string ReadNumber(string text, ref int index)
+    {
+        var start = index;
+        var currentState = NumberParsingState.IntegerPart;
 
-public class Token
-{
-    public TokenType Type { get; set; }
-    public string Value { get; set; }
+        while (index < text.Length)
+        {
+            if (char.IsDigit(text[index]))
+            {
+                index++;
+                continue;
+            }
+
+            if (text[index] != '.' && text[index] != ',')
+            {
+                break;
+            }
+
+            if (currentState != NumberParsingState.IntegerPart || index + 1 >= text.Length ||
+                !char.IsDigit(text[index + 1]))
+            {
+                throw new Exception(TokenizerErrors.InvalidNumberFormat);
+            }
+
+            currentState = NumberParsingState.FractionalPart;
+            index++;
+        }
+
+        return text.Substring(start, index - start).Replace(',', '.');
+    }
+
+    private enum NumberParsingState
+    {
+        IntegerPart,
+        FractionalPart
+    }
 }
